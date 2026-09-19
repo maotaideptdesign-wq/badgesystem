@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>名牌製作系統</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d29;
+    --paper:#faf8f3;
+    --panel:#ffffff;
+    --line:#ddd6c4;
+    --navy:#1b2a4a;
+    --navy-2:#2c3f66;
+    --gold:#b8933f;
+    --gold-soft:#e9dcb8;
+    --danger:#a4483a;
+    --muted:#6b6558;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#eee9dc; --paper:#15141a; --panel:#1d1c24; --line:#3a3748;
+      --navy:#dfe6f5; --navy-2:#b7c4e0; --gold:#e3c473; --gold-soft:#4a4128; --muted:#a39d8c;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#eee9dc; --paper:#15141a; --panel:#1d1c24; --line:#3a3748;
+    --navy:#dfe6f5; --navy-2:#b7c4e0; --gold:#e3c473; --gold-soft:#4a4128; --muted:#a39d8c;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);
+    font-family:'Noto Sans TC',-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif;}
+
+  .app{display:flex;min-height:100vh;}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:360px; min-width:300px; flex-shrink:0;
+    background:var(--panel); border-right:1px solid var(--line);
+    padding:22px 20px 60px; overflow-y:auto; height:100vh; position:sticky; top:0;
+  }
+  .brand{display:flex; align-items:baseline; gap:8px; margin-bottom:4px;}
+  .brand .mark{width:10px;height:10px;background:var(--gold);display:inline-block;}
+  .brand h1{font-size:18px; font-weight:900; margin:0; letter-spacing:.02em;}
+  .brand-sub{font-size:12px; color:var(--muted); margin:0 0 22px;}
+
+  .section{margin-bottom:26px;}
+  .section h2{
+    font-size:13px; font-weight:700; margin:0 0 12px; color:var(--navy);
+    padding-bottom:6px; border-bottom:2px solid var(--gold);
+    display:inline-block;
+  }
+
+  label{display:block; font-size:12px; color:var(--muted); margin:10px 0 4px;}
+  label:first-child{margin-top:0;}
+  input[type=text], input[type=number], select, textarea{
+    width:100%; padding:9px 10px; font-size:14px; font-family:inherit;
+    border:1px solid var(--line); background:var(--paper); color:var(--ink);
+    border-radius:2px;
+  }
+  input:focus, select:focus, textarea:focus{outline:2px solid var(--navy-2); outline-offset:1px;}
+  textarea{resize:vertical; min-height:76px; line-height:1.5;}
+
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+
+  button{
+    font-family:inherit; cursor:pointer; border:none; border-radius:2px;
+    font-weight:700; font-size:13px; padding:10px 14px; transition:opacity .12s;
+  }
+  button:hover{opacity:.85;}
+  button:active{opacity:.7;}
+  .btn-primary{background:var(--navy); color:#fff; width:100%; margin-top:12px;}
+  .btn-ghost{background:transparent; color:var(--navy); border:1px solid var(--line); width:100%; margin-top:8px;}
+  .btn-small{background:var(--paper); color:var(--muted); border:1px solid var(--line); padding:4px 8px; font-size:11px;}
+  .btn-danger-text{background:none; color:var(--danger); padding:4px 6px; font-size:12px; font-weight:700;}
+
+  .hint{font-size:11px; color:var(--muted); margin-top:6px; line-height:1.5;}
+  .not-found{color:var(--danger); font-size:11px; margin-top:4px;}
+
+  .chip-row{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
+  .chip{
+    background:var(--paper); border:1px solid var(--line); color:var(--ink);
+    font-size:11px; font-weight:500; padding:5px 9px; border-radius:20px; cursor:pointer;
+  }
+  .chip:hover{border-color:var(--navy-2);}
+  .chip.active{background:var(--navy); color:#fff; border-color:var(--navy);}
+
+  /* entry list */
+  .entry-list{display:flex; flex-direction:column; gap:6px; margin-top:14px; max-height:340px; overflow-y:auto;}
+  .entry-row{
+    display:flex; align-items:center; gap:8px; padding:7px 8px;
+    border:1px solid var(--line); background:var(--paper); font-size:12.5px;
+  }
+  .entry-flag{width:22px; text-align:center; font-size:15px; flex-shrink:0;}
+  .entry-text{flex:1; min-width:0;}
+  .entry-title{color:var(--muted); font-size:10.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .entry-name{font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .entry-actions{display:flex; gap:2px; flex-shrink:0;}
+  .entry-actions button{padding:3px 6px; font-size:11px;}
+  .empty-note{font-size:12px; color:var(--muted); padding:14px 4px; text-align:center; border:1px dashed var(--line);}
+
+  .count-badge{font-size:11px; color:var(--muted); font-weight:400;}
+
+  input[type=range]{width:100%;}
+  .range-val{font-size:11px; color:var(--muted); float:right;}
+
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; margin:10px 0;}
+  .toggle-row span{font-size:12.5px;}
+  .switch{position:relative; width:36px; height:20px; flex-shrink:0;}
+  .switch input{opacity:0; width:0; height:0;}
+  .slider-tog{position:absolute; inset:0; background:var(--line); border-radius:20px; cursor:pointer; transition:.15s;}
+  .slider-tog:before{content:"";position:absolute; width:14px; height:14px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.15s;}
+  input:checked + .slider-tog{background:var(--navy);}
+  input:checked + .slider-tog:before{transform:translateX(16px);}
+
+  /* ---------- Main / preview ---------- */
+  .main{flex:1; min-width:0; padding:26px 34px 80px; overflow-x:auto;}
+  .main-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; gap:16px; flex-wrap:wrap;}
+  .main-top h2{font-size:16px; margin:0; font-weight:700;}
+  .main-top p{margin:2px 0 0; font-size:12.5px; color:var(--muted);}
+  .print-btn{background:var(--gold); color:#231d0d;}
+
+  .pages{display:flex; flex-direction:column; align-items:flex-start; gap:28px;}
+  .page-label{font-size:11px; color:var(--muted); margin-bottom:6px; font-weight:700;}
+
+  .sheet{
+    background:#ffffff; box-shadow:0 1px 4px rgba(0,0,0,.15), 0 0 0 1px rgba(0,0,0,.04);
+    width:21cm; height:29.7cm; padding:1cm; flex-shrink:0;
+    display:flex; flex-wrap:wrap; align-content:flex-start;
+    gap:var(--gap,0.25cm);
+  }
+
+  .badge{
+    width:var(--bw,8.7cm); height:var(--bh,4cm);
+    flex-shrink:0;
+    border:1px dashed #b9b2a0;
+    background:#fff; color:#1a1a1a;
+    position:relative;
+    padding:7% 9%;
+    display:flex; flex-direction:column; justify-content:center;
+  }
+  .badge.no-cut{border-color:transparent;}
+  .badge.placeholder{opacity:.4;}
+
+  .badge .title-line{
+    font-size:var(--title-size,11pt); font-weight:700; letter-spacing:.02em;
+    color:var(--navy); margin-bottom:3%;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:82%;
+  }
+  .badge .person-name{
+    font-size:var(--name-size,20pt); font-weight:900; line-height:1.15; color:#1a1a1a;
+    word-break:break-word; max-width:82%;
+  }
+
+  .badge .flag-corner{
+    position:absolute; right:6%; bottom:6%;
+    width:calc(var(--bh,4cm) * 0.3); height:calc(var(--bh,4cm) * 0.3);
+    display:flex; align-items:center; justify-content:center;
+    font-size:calc(var(--bh,4cm) * 0.2);
+    background:#fff;
+  }
+  .badge .flag-corner.boxed{ border:1.5px solid var(--navy); }
+  .badge .flag-code{
+    position:absolute; right:6%; bottom:1%;
+    font-size:7px; letter-spacing:.06em; color:var(--muted); font-weight:700;
+  }
+
+  @media print{
+    body *{visibility:hidden;}
+    .print-area, .print-area *{visibility:visible;}
+    .print-area{position:absolute; left:0; top:0; margin:0; padding:0;}
+    .sheet{box-shadow:none; margin:0; page-break-after:always;}
+    .sheet:last-child{page-break-after:auto;}
+    .page-label{display:none;}
+    @page{ size:A4; margin:0; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand"><span class="mark"></span><h1>名牌製作系統</h1></div>
+    <p class="brand-sub">頭銜、姓名、右下角國旗，排版列印 A4</p>
+
+    <div class="section">
+      <h2>新增名牌</h2>
+      <label for="titleInput">頭銜 / 職稱</label>
+      <input list="titleList" id="titleInput" type="text" placeholder="選擇或輸入頭銜" autocomplete="off">
+      <datalist id="titleList">
+        <option value="Head of Delegation">
+        <option value="Policy &amp; Instruments Adviser">
+        <option value="Negotiator / Coalition Lead">
+        <option value="Drafting &amp; Amendments Officer">
+        <option value="Committee Delegate">
+      </datalist>
+      <div class="chip-row" id="titleChips"></div>
+
+      <label for="nameInput">姓名</label>
+      <input id="nameInput" type="text" placeholder="例如：宋怡璇">
+
+      <label for="countryInput">國家 / 地區（決定右下角國旗）</label>
+      <input list="countryList" id="countryInput" type="text" placeholder="例如：台灣、日本、菲律賓…" autocomplete="off">
+      <datalist id="countryList"></datalist>
+      <div id="notFoundHint" class="not-found" style="display:none;">找不到符合的國家旗幟，右下角將留白，仍可繼續新增。</div>
+
+      <button class="btn-primary" id="addBtn">加入名牌</button>
+    </div>
+
+    <div class="section">
+      <h2>批次貼上 <span class="count-badge">(頭銜,姓名,國家 每行一筆)</span></h2>
+      <textarea id="bulkInput" placeholder="Head of Delegation,宋怡璇,台灣&#10;Delegate,山田太郎,日本"></textarea>
+      <button class="btn-ghost" id="bulkBtn">批次加入</button>
+    </div>
+
+    <div class="section">
+      <h2>名牌清單 <span class="count-badge" id="entryCount">(0)</span></h2>
+      <div class="entry-list" id="entryList"></div>
+      <button class="btn-ghost" id="clearBtn">清空全部</button>
+    </div>
+
+    <div class="section">
+      <h2>版面設定</h2>
+      <div class="row2">
+        <div>
+          <label for="bw">寬度 (cm)</label>
+          <input type="number" id="bw" value="8.7" step="0.1" min="2">
+        </div>
+        <div>
+          <label for="bh">高度 (cm)</label>
+          <input type="number" id="bh" value="4" step="0.1" min="2">
+        </div>
+      </div>
+      <div class="hint">預設為橫式 8.7×4 公分。若您原意是直式，改成寬 4／高 8.7 即可。</div>
+
+      <label for="gapInput">名牌間距 <span class="range-val" id="gapVal">0.25cm</span></label>
+      <input type="range" id="gapInput" min="0" max="1" step="0.05" value="0.25">
+
+      <label for="titleSize">頭銜字級 <span class="range-val" id="titleSizeVal">11pt</span></label>
+      <input type="range" id="titleSize" min="7" max="20" step="1" value="11">
+
+      <label for="nameSize">姓名字級 <span class="range-val" id="nameSizeVal">20pt</span></label>
+      <input type="range" id="nameSize" min="10" max="36" step="1" value="20">
+
+      <div class="toggle-row">
+        <span>顯示裁切虛線</span>
+        <label class="switch"><input type="checkbox" id="cutGuide" checked><span class="slider-tog"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span>國旗加外框</span>
+        <label class="switch"><input type="checkbox" id="flagBox" checked><span class="slider-tog"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span>國旗下顯示國碼</span>
+        <label class="switch"><input type="checkbox" id="showCode"><span class="slider-tog"></span></label>
+      </div>
+    </div>
+
+    <div class="hint">資料只會保存在您目前使用的瀏覽器中，重新整理不會遺失。</div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main">
+    <div class="main-top">
+      <div>
+        <h2>A4 預覽（實際列印大小）</h2>
+        <p id="pageSummary">尚未加入任何名牌</p>
+      </div>
+      <button class="print-btn" id="printBtn">列印 / 輸出 PDF</button>
+    </div>
+    <div class="pages print-area" id="pages"></div>
+  </main>
+
+</div>
+
+<script>
+/* ---------------- Country -> ISO code data ---------------- */
+const COUNTRIES = [
+["台灣","TW",["Taiwan","中華民國"]],
+["中國","CN",["China","中華人民共和國"]],
+["香港","HK",["Hong Kong"]],
+["澳門","MO",["Macau","Macao"]],
+["日本","JP",["Japan"]],
+["南韓","KR",["Korea","韓國","South Korea"]],
+["北韓","KP",["North Korea"]],
+["蒙古","MN",["Mongolia"]],
+["菲律賓","PH",["Philippines"]],
+["印尼","ID",["Indonesia","印度尼西亞"]],
+["馬來西亞","MY",["Malaysia"]],
+["新加坡","SG",["Singapore"]],
+["泰國","TH",["Thailand"]],
+["越南","VN",["Vietnam"]],
+["寮國","LA",["Laos"]],
+["柬埔寨","KH",["Cambodia"]],
+["緬甸","MM",["Myanmar","Burma"]],
+["汶萊","BN",["Brunei"]],
+["東帝汶","TL",["Timor-Leste","East Timor"]],
+["印度","IN",["India"]],
+["巴基斯坦","PK",["Pakistan"]],
+["孟加拉","BD",["Bangladesh"]],
+["斯里蘭卡","LK",["Sri Lanka"]],
+["尼泊爾","NP",["Nepal"]],
+["不丹","BT",["Bhutan"]],
+["馬爾地夫","MV",["Maldives"]],
+["阿富汗","AF",["Afghanistan"]],
+["哈薩克","KZ",["Kazakhstan"]],
+["烏茲別克","UZ",["Uzbekistan"]],
+["土庫曼","TM",["Turkmenistan"]],
+["吉爾吉斯","KG",["Kyrgyzstan"]],
+["塔吉克","TJ",["Tajikistan"]],
+["澳洲","AU",["Australia"]],
+["紐西蘭","NZ",["New Zealand"]],
+["巴布亞紐幾內亞","PG",["Papua New Guinea"]],
+["斐濟","FJ",["Fiji"]],
+["索羅門群島","SB",["Solomon Islands"]],
+["萬那杜","VU",["Vanuatu"]],
+["薩摩亞","WS",["Samoa"]],
+["東加","TO",["Tonga"]],
+["吉里巴斯","KI",["Kiribati"]],
+["帛琉","PW",["Palau"]],
+["密克羅尼西亞","FM",["Micronesia"]],
+["馬紹爾群島","MH",["Marshall Islands"]],
+["諾魯","NR",["Nauru"]],
+["吐瓦魯","TV",["Tuvalu"]],
+["庫克群島","CK",["Cook Islands"]],
+["法屬玻里尼西亞","PF",["French Polynesia","大溪地","Tahiti"]],
+["新喀里多尼亞","NC",["New Caledonia"]],
+["關島","GU",["Guam"]],
+["美國","US",["United States","USA","America"]],
+["加拿大","CA",["Canada"]],
+["墨西哥","MX",["Mexico"]],
+["瓜地馬拉","GT",["Guatemala"]],
+["貝里斯","BZ",["Belize"]],
+["宏都拉斯","HN",["Honduras"]],
+["薩爾瓦多","SV",["El Salvador"]],
+["尼加拉瓜","NI",["Nicaragua"]],
+["哥斯大黎加","CR",["Costa Rica"]],
+["巴拿馬","PA",["Panama"]],
+["古巴","CU",["Cuba"]],
+["牙買加","JM",["Jamaica"]],
+["海地","HT",["Haiti"]],
+["多明尼加","DO",["Dominican Republic"]],
+["巴哈馬","BS",["Bahamas"]],
+["巴貝多","BB",["Barbados"]],
+["千里達及托巴哥","TT",["Trinidad and Tobago"]],
+["巴西","BR",["Brazil"]],
+["阿根廷","AR",["Argentina"]],
+["智利","CL",["Chile"]],
+["秘魯","PE",["Peru"]],
+["哥倫比亞","CO",["Colombia"]],
+["委內瑞拉","VE",["Venezuela"]],
+["厄瓜多","EC",["Ecuador"]],
+["玻利維亞","BO",["Bolivia"]],
+["巴拉圭","PY",["Paraguay"]],
+["烏拉圭","UY",["Uruguay"]],
+["蓋亞那","GY",["Guyana"]],
+["蘇利南","SR",["Suriname"]],
+["英國","GB",["United Kingdom","UK","England"]],
+["愛爾蘭","IE",["Ireland"]],
+["法國","FR",["France"]],
+["德國","DE",["Germany"]],
+["荷蘭","NL",["Netherlands"]],
+["比利時","BE",["Belgium"]],
+["盧森堡","LU",["Luxembourg"]],
+["瑞士","CH",["Switzerland"]],
+["奧地利","AT",["Austria"]],
+["義大利","IT",["Italy"]],
+["西班牙","ES",["Spain"]],
+["葡萄牙","PT",["Portugal"]],
+["希臘","GR",["Greece"]],
+["波蘭","PL",["Poland"]],
+["捷克","CZ",["Czech Republic","Czechia"]],
+["斯洛伐克","SK",["Slovakia"]],
+["匈牙利","HU",["Hungary"]],
+["羅馬尼亞","RO",["Romania"]],
+["保加利亞","BG",["Bulgaria"]],
+["克羅埃西亞","HR",["Croatia"]],
+["斯洛維尼亞","SI",["Slovenia"]],
+["塞爾維亞","RS",["Serbia"]],
+["波士尼亞","BA",["Bosnia and Herzegovina"]],
+["蒙特內哥羅","ME",["Montenegro"]],
+["北馬其頓","MK",["North Macedonia"]],
+["阿爾巴尼亞","AL",["Albania"]],
+["科索沃","XK",["Kosovo"]],
+["瑞典","SE",["Sweden"]],
+["挪威","NO",["Norway"]],
+["丹麥","DK",["Denmark"]],
+["芬蘭","FI",["Finland"]],
+["冰島","IS",["Iceland"]],
+["愛沙尼亞","EE",["Estonia"]],
+["拉脫維亞","LV",["Latvia"]],
+["立陶宛","LT",["Lithuania"]],
+["烏克蘭","UA",["Ukraine"]],
+["俄羅斯","RU",["Russia"]],
+["白俄羅斯","BY",["Belarus"]],
+["摩爾多瓦","MD",["Moldova"]],
+["喬治亞","GE",["Georgia"]],
+["亞美尼亞","AM",["Armenia"]],
+["亞塞拜然","AZ",["Azerbaijan"]],
+["土耳其","TR",["Turkey","Turkiye"]],
+["賽普勒斯","CY",["Cyprus"]],
+["馬爾他","MT",["Malta"]],
+["以色列","IL",["Israel"]],
+["巴勒斯坦","PS",["Palestine"]],
+["約旦","JO",["Jordan"]],
+["黎巴嫩","LB",["Lebanon"]],
+["敘利亞","SY",["Syria"]],
+["伊拉克","IQ",["Iraq"]],
+["伊朗","IR",["Iran"]],
+["沙烏地阿拉伯","SA",["Saudi Arabia"]],
+["阿聯","AE",["United Arab Emirates","UAE"]],
+["卡達","QA",["Qatar"]],
+["科威特","KW",["Kuwait"]],
+["巴林","BH",["Bahrain"]],
+["阿曼","OM",["Oman"]],
+["葉門","YE",["Yemen"]],
+["埃及","EG",["Egypt"]],
+["利比亞","LY",["Libya"]],
+["突尼西亞","TN",["Tunisia"]],
+["阿爾及利亞","DZ",["Algeria"]],
+["摩洛哥","MA",["Morocco"]],
+["蘇丹","SD",["Sudan"]],
+["衣索比亞","ET",["Ethiopia"]],
+["肯亞","KE",["Kenya"]],
+["坦尚尼亞","TZ",["Tanzania"]],
+["烏干達","UG",["Uganda"]],
+["盧安達","RW",["Rwanda"]],
+["奈及利亞","NG",["Nigeria"]],
+["迦納","GH",["Ghana"]],
+["象牙海岸","CI",["Cote d'Ivoire","Ivory Coast"]],
+["塞內加爾","SN",["Senegal"]],
+["南非","ZA",["South Africa"]],
+["辛巴威","ZW",["Zimbabwe"]],
+["尚比亞","ZM",["Zambia"]],
+["莫三比克","MZ",["Mozambique"]],
+["馬達加斯加","MG",["Madagascar"]],
+["納米比亞","NA",["Namibia"]],
+["波札那","BW",["Botswana"]],
+["剛果民主共和國","CD",["DR Congo"]],
+["剛果","CG",["Congo"]],
+["喀麥隆","CM",["Cameroon"]],
+["安哥拉","AO",["Angola"]],
+["模里西斯","MU",["Mauritius"]],
+["塞席爾","SC",["Seychelles"]]
+];
+
+const COUNTRY_MAP = {};
+COUNTRIES.forEach(([name, code, aliases])=>{
+  const keys = [name, ...aliases];
+  keys.forEach(k=>{ COUNTRY_MAP[k.trim().toLowerCase()] = {name, code}; });
+});
+
+function codeToFlagEmoji(code){
+  return code.toUpperCase().replace(/./g, c =>
+    String.fromCodePoint(127397 + c.charCodeAt(0))
+  );
+}
+
+function lookupCountry(raw){
+  if(!raw) return null;
+  const q = raw.trim().toLowerCase();
+  if(COUNTRY_MAP[q]) return COUNTRY_MAP[q];
+  const found = Object.keys(COUNTRY_MAP).find(k => k.includes(q) || q.includes(k));
+  return found ? COUNTRY_MAP[found] : null;
+}
+
+const PRESET_TITLES = [
+  "Head of Delegation",
+  "Policy & Instruments Adviser",
+  "Negotiator / Coalition Lead",
+  "Drafting & Amendments Officer",
+  "Committee Delegate"
+];
+const titleChipsEl = document.getElementById('titleChips');
+PRESET_TITLES.forEach(t=>{
+  const chip = document.createElement('button');
+  chip.type = 'button';
+  chip.className = 'chip';
+  chip.textContent = t;
+  chip.addEventListener('click', ()=>{
+    const ti = document.getElementById('titleInput');
+    ti.value = t;
+    document.querySelectorAll('#titleChips .chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    document.getElementById('nameInput').focus();
+  });
+  titleChipsEl.appendChild(chip);
+});
+document.getElementById('titleInput').addEventListener('input', function(){
+  document.querySelectorAll('#titleChips .chip').forEach(c=>{
+    c.classList.toggle('active', c.textContent === this.value);
+  });
+});
+
+const dl = document.getElementById('countryList');
+COUNTRIES.forEach(([name])=>{
+  const opt = document.createElement('option');
+  opt.value = name;
+  dl.appendChild(opt);
+});
+
+/* ---------------- State ---------------- */
+let entries = [];
+try{
+  const saved = localStorage.getItem('badge_entries_v2');
+  if(saved) entries = JSON.parse(saved);
+  else{
+    const old = localStorage.getItem('badge_entries_v1');
+    if(old){
+      entries = JSON.parse(old).map(e=>({title:'', name:e.name, country:e.country}));
+    }
+  }
+}catch(e){ entries = []; }
+
+let settings = {bw:8.7, bh:4, gap:0.25, titleSize:11, nameSize:20, cutGuide:true, flagBox:true, showCode:false};
+try{
+  const s = localStorage.getItem('badge_settings_v2');
+  if(s) settings = Object.assign(settings, JSON.parse(s));
+}catch(e){}
+
+function persist(){
+  try{
+    localStorage.setItem('badge_entries_v2', JSON.stringify(entries));
+    localStorage.setItem('badge_settings_v2', JSON.stringify(settings));
+  }catch(e){}
+}
+
+/* ---------------- DOM refs ---------------- */
+const titleInput = document.getElementById('titleInput');
+const countryInput = document.getElementById('countryInput');
+const nameInput = document.getElementById('nameInput');
+const notFoundHint = document.getElementById('notFoundHint');
+const addBtn = document.getElementById('addBtn');
+const bulkInput = document.getElementById('bulkInput');
+const bulkBtn = document.getElementById('bulkBtn');
+const entryListEl = document.getElementById('entryList');
+const entryCountEl = document.getElementById('entryCount');
+const clearBtn = document.getElementById('clearBtn');
+const pagesEl = document.getElementById('pages');
+const pageSummary = document.getElementById('pageSummary');
+const printBtn = document.getElementById('printBtn');
+
+const bwInput = document.getElementById('bw');
+const bhInput = document.getElementById('bh');
+const gapInput = document.getElementById('gapInput');
+const gapVal = document.getElementById('gapVal');
+const titleSizeInput = document.getElementById('titleSize');
+const titleSizeVal = document.getElementById('titleSizeVal');
+const nameSizeInput = document.getElementById('nameSize');
+const nameSizeVal = document.getElementById('nameSizeVal');
+const cutGuideInput = document.getElementById('cutGuide');
+const flagBoxInput = document.getElementById('flagBox');
+const showCodeInput = document.getElementById('showCode');
+
+bwInput.value = settings.bw;
+bhInput.value = settings.bh;
+gapInput.value = settings.gap;
+gapVal.textContent = settings.gap + 'cm';
+titleSizeInput.value = settings.titleSize;
+titleSizeVal.textContent = settings.titleSize + 'pt';
+nameSizeInput.value = settings.nameSize;
+nameSizeVal.textContent = settings.nameSize + 'pt';
+cutGuideInput.checked = settings.cutGuide;
+flagBoxInput.checked = settings.flagBox;
+showCodeInput.checked = settings.showCode;
+
+countryInput.addEventListener('input', ()=>{
+  const v = countryInput.value.trim();
+  notFoundHint.style.display = (v && !lookupCountry(v)) ? 'block' : 'none';
+});
+
+function addEntry(title, name, country){
+  if(!name) return;
+  entries.push({title:(title||'').trim(), name:name.trim(), country:(country||'').trim()});
+  persist();
+  renderEntries();
+  renderPages();
+}
+
+addBtn.addEventListener('click', ()=>{
+  addEntry(titleInput.value, nameInput.value, countryInput.value);
+  titleInput.value=''; nameInput.value=''; countryInput.value='';
+  notFoundHint.style.display='none';
+  titleInput.focus();
+});
+titleInput.addEventListener('keydown', e=>{ if(e.key==='Enter'){ nameInput.focus(); } });
+nameInput.addEventListener('keydown', e=>{ if(e.key==='Enter'){ countryInput.focus(); } });
+countryInput.addEventListener('keydown', e=>{ if(e.key==='Enter'){ addBtn.click(); } });
+
+bulkBtn.addEventListener('click', ()=>{
+  const lines = bulkInput.value.split('\n').map(l=>l.trim()).filter(Boolean);
+  lines.forEach(line=>{
+    const parts = line.split(/[,\uFF0C\t]/).map(p=>p.trim());
+    if(parts.length>=3) addEntry(parts[0], parts[1], parts[2]);
+    else if(parts.length===2) addEntry('', parts[0], parts[1]);
+  });
+  bulkInput.value='';
+});
+
+clearBtn.addEventListener('click', ()=>{
+  if(entries.length===0) return;
+  if(confirm('確定要清空全部名牌嗎？此動作無法復原。')){
+    entries = [];
+    persist(); renderEntries(); renderPages();
+  }
+});
+
+function removeEntry(i){
+  entries.splice(i,1);
+  persist(); renderEntries(); renderPages();
+}
+function moveEntry(i, dir){
+  const j = i+dir;
+  if(j<0 || j>=entries.length) return;
+  [entries[i], entries[j]] = [entries[j], entries[i]];
+  persist(); renderEntries(); renderPages();
+}
+
+function renderEntries(){
+  entryCountEl.textContent = `(${entries.length})`;
+  entryListEl.innerHTML='';
+  if(entries.length===0){
+    entryListEl.innerHTML = '<div class="empty-note">尚未加入名牌，請於上方輸入</div>';
+    return;
+  }
+  entries.forEach((e,i)=>{
+    const c = lookupCountry(e.country);
+    const flag = c ? codeToFlagEmoji(c.code) : (e.country ? '\u2b1c' : '');
+    const row = document.createElement('div');
+    row.className='entry-row';
+    row.innerHTML = `
+      <span class="entry-flag">${flag}</span>
+      <span class="entry-text">
+        <div class="entry-title">${escapeHtml(e.title||'')}</div>
+        <div class="entry-name">${escapeHtml(e.name)}</div>
+      </span>
+      <span class="entry-actions">
+        <button class="btn-small" data-act="up" title="上移">↑</button>
+        <button class="btn-small" data-act="down" title="下移">↓</button>
+        <button class="btn-danger-text" data-act="del" title="刪除">✕</button>
+      </span>`;
+    row.querySelector('[data-act=up]').addEventListener('click', ()=>moveEntry(i,-1));
+    row.querySelector('[data-act=down]').addEventListener('click', ()=>moveEntry(i,1));
+    row.querySelector('[data-act=del]').addEventListener('click', ()=>removeEntry(i));
+    entryListEl.appendChild(row);
+  });
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* ---------------- Settings listeners ---------------- */
+function updateSettingsFromUI(){
+  settings.bw = parseFloat(bwInput.value)||8.7;
+  settings.bh = parseFloat(bhInput.value)||4;
+  settings.gap = parseFloat(gapInput.value);
+  settings.titleSize = parseInt(titleSizeInput.value,10);
+  settings.nameSize = parseInt(nameSizeInput.value,10);
+  settings.cutGuide = cutGuideInput.checked;
+  settings.flagBox = flagBoxInput.checked;
+  settings.showCode = showCodeInput.checked;
+  gapVal.textContent = settings.gap + 'cm';
+  titleSizeVal.textContent = settings.titleSize + 'pt';
+  nameSizeVal.textContent = settings.nameSize + 'pt';
+  persist();
+  renderPages();
+}
+[bwInput,bhInput,gapInput,titleSizeInput,nameSizeInput,cutGuideInput,flagBoxInput,showCodeInput].forEach(el=>{
+  el.addEventListener('input', updateSettingsFromUI);
+  el.addEventListener('change', updateSettingsFromUI);
+});
+
+/* ---------------- Pages / print layout ---------------- */
+function renderPages(){
+  pagesEl.innerHTML='';
+
+  if(entries.length===0){
+    pageSummary.textContent = '尚未加入任何名牌';
+    return;
+  }
+
+  const printableW = 21 - 2;
+  const printableH = 29.7 - 2;
+  const cols = Math.max(1, Math.floor((printableW + settings.gap) / (settings.bw + settings.gap)));
+  const rows = Math.max(1, Math.floor((printableH + settings.gap) / (settings.bh + settings.gap)));
+  const perPage = cols*rows;
+  const pageCount = Math.ceil(entries.length / perPage);
+  pageSummary.textContent = `共 ${entries.length} 張名牌，每頁可排 ${perPage} 張（${cols}×${rows}），需要 ${pageCount} 頁 A4`;
+
+  for(let p=0; p<pageCount; p++){
+    const wrap = document.createElement('div');
+    const label = document.createElement('div');
+    label.className='page-label';
+    label.textContent = `第 ${p+1} 頁 / 共 ${pageCount} 頁`;
+    wrap.appendChild(label);
+
+    const sheet = document.createElement('div');
+    sheet.className='sheet';
+    sheet.style.setProperty('--gap', settings.gap+'cm');
+
+    const slice = entries.slice(p*perPage, (p+1)*perPage);
+    slice.forEach(e=>{
+      sheet.appendChild(buildBadge(e));
+    });
+    wrap.appendChild(sheet);
+    pagesEl.appendChild(wrap);
+  }
+}
+
+function buildBadge(e){
+  const c = lookupCountry(e.country);
+  const badge = document.createElement('div');
+  badge.className = 'badge' + (settings.cutGuide ? '' : ' no-cut') + ((!c && e.country) ? ' placeholder' : '');
+  badge.style.setProperty('--bw', settings.bw+'cm');
+  badge.style.setProperty('--bh', settings.bh+'cm');
+  badge.style.setProperty('--title-size', settings.titleSize+'pt');
+  badge.style.setProperty('--name-size', settings.nameSize+'pt');
+
+  const flagHtml = c ? codeToFlagEmoji(c.code) : '';
+  const codeHtml = (settings.showCode && c) ? `<div class="flag-code">${c.code}</div>` : '';
+  const titleHtml = e.title ? `<div class="title-line">${escapeHtml(e.title)}</div>` : '';
+
+  badge.innerHTML = `
+    ${titleHtml}
+    <div class="person-name">${escapeHtml(e.name)}</div>
+    <div class="flag-corner${settings.flagBox ? ' boxed' : ''}">${flagHtml}</div>
+    ${codeHtml}`;
+  return badge;
+}
+
+printBtn.addEventListener('click', ()=> window.print());
+
+/* ---------------- init ---------------- */
+renderEntries();
+renderPages();
+</script>
+</body>
+</html>
