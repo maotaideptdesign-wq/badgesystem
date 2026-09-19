@@ -147,24 +147,28 @@
 
   .badge .title-line{
     font-size:var(--title-size,11pt); font-weight:700; letter-spacing:.02em;
-    color:var(--navy); margin-bottom:3%;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:82%;
+    color:#000; margin-bottom:5%;
+    white-space:normal; word-break:break-word; overflow-wrap:break-word;
+    max-width:100%; line-height:1.25;
+  }
+  .badge .name-row{
+    display:flex; align-items:center; justify-content:space-between; gap:4%;
+    width:100%;
   }
   .badge .person-name{
-    font-size:var(--name-size,20pt); font-weight:900; line-height:1.15; color:#1a1a1a;
-    word-break:break-word; max-width:82%;
+    font-size:var(--name-size,20pt); font-weight:900; line-height:1.15; color:#000;
+    word-break:break-word; flex:1; min-width:0;
   }
 
+  .badge .flag-wrap{display:flex; flex-direction:column; align-items:center; gap:2px; flex-shrink:0;}
   .badge .flag-corner{
-    position:absolute; right:6%; bottom:6%;
     width:calc(var(--bh,4cm) * 0.3); height:calc(var(--bh,4cm) * 0.3);
     display:flex; align-items:center; justify-content:center;
     font-size:calc(var(--bh,4cm) * 0.2);
     background:#fff;
   }
-  .badge .flag-corner.boxed{ border:1.5px solid var(--navy); }
+  .badge .flag-corner.boxed{ border:1.5px solid #000; }
   .badge .flag-code{
-    position:absolute; right:6%; bottom:1%;
     font-size:7px; letter-spacing:.06em; color:var(--muted); font-weight:700;
   }
 
@@ -727,9 +731,13 @@ function buildBadge(e){
 
   badge.innerHTML = `
     ${titleHtml}
-    <div class="person-name">${escapeHtml(e.name)}</div>
-    <div class="flag-corner${settings.flagBox ? ' boxed' : ''}">${flagHtml}</div>
-    ${codeHtml}`;
+    <div class="name-row">
+      <div class="person-name">${escapeHtml(e.name)}</div>
+      <div class="flag-wrap">
+        <div class="flag-corner${settings.flagBox ? ' boxed' : ''}">${flagHtml}</div>
+        ${codeHtml}
+      </div>
+    </div>`;
   return badge;
 }
 
